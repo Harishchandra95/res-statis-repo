@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TableFlow — Restaurant Ordering POC</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--text:#18212f;--muted:#6b7280;--brand:#e85d3f;--brand2:#ff8a65;--green:#20a66a;--yellow:#f59e0b;--blue:#3976e8;--red:#dc3545;--border:#e7e9ef;--shadow:0 10px 30px rgba(18,30,52,.07)}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit} button{cursor:pointer;border:0}.app{min-height:100vh}.topbar{height:70px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:20}
+.logo{font-size:22px;font-weight:800}.logo span{color:var(--brand)}.nav{display:flex;gap:8px}.nav button{padding:10px 14px;border-radius:10px;background:transparent;color:#596274;font-weight:600}.nav button.active,.nav button:hover{background:#fff0ec;color:var(--brand)}
+.clock{font-size:13px;color:var(--muted)}main{max-width:1240px;margin:auto;padding:28px}.page{display:none}.page.active{display:block}.hero{background:linear-gradient(135deg,#fff,#fff4f0);border:1px solid #ffe1d8;border-radius:24px;padding:30px;margin-bottom:24px}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--brand);font-weight:800}.hero h1{font-size:38px;line-height:1.08;margin:8px 0}.hero p{color:var(--muted);max-width:680px}.grid{display:grid;gap:18px}.grid4{grid-template-columns:repeat(4,1fr)}.grid3{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:repeat(2,1fr)}.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.menu-card{display:flex;flex-direction:column;gap:12px}.food{height:145px;border-radius:14px;background:linear-gradient(135deg,#f5e1d5,#f9f4ef);display:flex;align-items:center;justify-content:center;font-size:58px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.muted{color:var(--muted);font-size:14px}.price{font-weight:800;font-size:18px}.tag{display:inline-flex;padding:5px 9px;border-radius:999px;background:#f1f3f7;color:#596274;font-size:12px;font-weight:700}.tag.green{background:#e8f8f0;color:#168452}.tag.yellow{background:#fff6df;color:#9b6500}.tag.blue{background:#eaf1ff;color:#285ebd}.tag.red{background:#ffe9eb;color:#b82b3a}
+.primary{background:var(--brand);color:white;padding:11px 15px;border-radius:10px;font-weight:700}.secondary{background:#f1f3f7;color:#374151;padding:11px 15px;border-radius:10px;font-weight:700}.small{padding:8px 11px;font-size:13px}.section-title{margin:28px 0 14px}.section-title h2{margin:0 0 5px}.section-title p{margin:0;color:var(--muted)}
+.cart{position:fixed;right:24px;bottom:24px;width:340px;background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.14);padding:18px;z-index:30;display:none}.cart.show{display:block}.cart-items{max-height:220px;overflow:auto}.cart-line{padding:10px 0;border-bottom:1px solid var(--border)}.qty{display:flex;align-items:center;gap:8px}.qty button{width:27px;height:27px;border-radius:8px;background:#f1f3f7}
+.filter{display:flex;gap:8px;overflow:auto;margin-bottom:18px}.filter button{padding:9px 13px;border-radius:999px;background:#fff;border:1px solid var(--border);white-space:nowrap}.filter button.active{background:#18212f;color:#fff}
+input,select{width:100%;border:1px solid var(--border);border-radius:10px;padding:11px;background:#fff;outline:none}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.form-group label{display:block;font-size:12px;font-weight:700;margin-bottom:6px;color:#596274}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.stat strong{font-size:28px;display:block;margin-top:6px}
+.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:13px;border-bottom:1px solid var(--border);font-size:14px}.table th{font-size:12px;color:var(--muted);text-transform:uppercase}
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.column{background:#eef0f5;border-radius:16px;padding:12px;min-height:360px}.column h3{font-size:14px;margin:4px 5px 12px}.order{background:#fff;border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:10px;box-shadow:0 5px 14px rgba(18,30,52,.05)}.order ul{margin:10px 0;padding-left:18px;color:#596274;font-size:13px}.order .actions{display:flex;gap:6px}.notice{padding:13px 15px;background:#eef6ff;border:1px solid #d9e8ff;border-radius:12px;color:#315f9e;margin-bottom:18px}
+@media(max-width:900px){.grid4,.stats{grid-template-columns:repeat(2,1fr)}.grid3,.kanban{grid-template-columns:1fr 1fr}.topbar{height:auto;gap:10px;flex-wrap:wrap;padding:14px}.nav{order:3;width:100%;overflow:auto}.cart{left:12px;right:12px;width:auto}}@media(max-width:600px){main{padding:15px}.grid4,.grid3,.grid2,.stats,.kanban,.form-grid{grid-template-columns:1fr}.hero h1{font-size:30px}.food{height:120px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="logo">Table<span>Flow</span></div>
+  <div class="nav">
+    <button class="nav-btn active" data-page="customer">Customer Menu</button>
+    <button class="nav-btn" data-page="admin">Admin Dashboard</button>
+    <button class="nav-btn" data-page="kitchen">Kitchen KDS</button>
+  </div>
+  <div class="clock" id="clock"></div>
+</header>
+
+<main>
+<section id="customer" class="page active">
+  <div class="hero">
+    <div class="eyebrow">Smart restaurant ordering</div>
+    <h1 id="welcomeTitle">Good evening 👋</h1>
+    <p id="menuDescription">Today's menu automatically changes based on the current time.</p>
+    <div class="row" style="max-width:620px">
+      <span class="tag green" id="activeMenuTag">Dinner Menu</span>
+      <span class="muted">Open for online & table orders</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px">
+    <div class="form-grid">
+      <div class="form-group"><label>Order type</label><select id="orderType"><option value="online">Online / Pickup</option><option value="table">Dine-in / Table Service</option></select></div>
+      <div class="form-group" id="tableField"><label>Table number</label><select id="tableNo"><option>Table 01</option><option>Table 02</option><option>Table 03</option><option>Table 04</option><option>Table 05</option><option>Table 06</option><option>Table 07</option><option>Table 08</option></select></div>
+    </div>
+  </div>
+
+  <div class="filter" id="categoryFilter"></div>
+  <div class="section-title"><h2 id="menuTitle">Dinner Menu</h2><p>Freshly prepared · Order directly from your table</p></div>
+  <div class="grid grid4" id="menuGrid"></div>
+</section>
+
+<section id="admin" class="page">
+  <div class="section-title"><h2>Admin Dashboard</h2><p>Manage menu, pricing and incoming restaurant orders.</p></div>
+  <div class="stats">
+    <div class="card stat"><span class="muted">Today's orders</span><strong id="statOrders">12</strong><span class="tag green">+18%</span></div>
+    <div class="card stat"><span class="muted">Revenue</span><strong>₹8,460</strong><span class="tag green">Today</span></div>
+    <div class="card stat"><span class="muted">Kitchen pending</span><strong id="statKitchen">3</strong><span class="tag yellow">Needs action</span></div>
+    <div class="card stat"><span class="muted">Tables occupied</span><strong>6/12</strong><span class="tag blue">Live</span></div>
+  </div>
+
+  <div class="section-title"><h2>Menu Management</h2><p>Add products or edit the demo products below.</p></div>
+  <div class="card">
+    <div class="form-grid">
+      <div class="form-group"><label>Product name</label><input id="pName" placeholder="e.g. Paneer Tikka"></div>
+      <div class="form-group"><label>Price</label><input id="pPrice" type="number" placeholder="250"></div>
+      <div class="form-group"><label>Category</label><select id="pCat"><option>Starters</option><option>Main Course</option><option>Breads</option><option>Desserts</option><option>Beverages</option></select></div>
+      <div class="form-group"><label>Menu timing</label><select id="pTime"><option value="morning">Morning</option><option value="lunch">Lunch</option><option value="evening">Evening</option><option value="dinner">Dinner</option><option value="all">All Day</option></select></div>
+    </div>
+    <button class="primary" style="margin-top:14px" onclick="addProduct()">+ Add Product</button>
+  </div>
+  <div class="card" style="margin-top:18px;overflow:auto">
+    <table class="table"><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Menu</th><th>Action</th></tr></thead><tbody id="productTable"></tbody></table>
+  </div>
+</section>
+
+<section id="kitchen" class="page">
+  <div class="section-title"><h2>Kitchen Display System</h2><p>Accepted orders appear here. Move each ticket through the preparation workflow.</p></div>
+  <div class="notice">Demo flow: Customer places order → Admin accepts → Kitchen receives → Preparing → Ready → Served / Completed.</div>
+  <div class="kanban">
+    <div class="column"><h3>NEW / ACCEPTED <span class="tag blue" id="countNew">0</span></h3><div id="colNew"></div></div>
+    <div class="column"><h3>PREPARING <span class="tag yellow" id="countPrep">0</span></h3><div id="colPrep"></div></div>
+    <div class="column"><h3>READY <span class="tag green" id="countReady">0</span></h3><div id="colReady"></div></div>
+    <div class="column"><h3>COMPLETED <span class="tag">0</span></h3><div id="colDone"></div></div>
+  </div>
+</section>
+</main>
+
+<div class="cart" id="cart">
+  <div class="row"><h3 style="margin:0">Your Order</h3><button class="secondary small" onclick="toggleCart()">Close</button></div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="row" style="padding:14px 0"><strong>Total</strong><strong id="cartTotal">₹0</strong></div>
+  <button class="primary" style="width:100%" onclick="placeOrder()">Place Order</button>
+</div>
+
+<script>
+const seedProducts=[
+ {id:1,name:"Masala Dosa",price:160,cat:"Main Course",time:"morning",emoji:"🥞"},
+ {id:2,name:"Idli Sambar",price:120,cat:"Main Course",time:"morning",emoji:"🍘"},
+ {id:3,name:"Poha",price:90,cat:"Starters",time:"morning",emoji:"🥣"},
+ {id:4,name:"Veg Thali",price:240,cat:"Main Course",time:"lunch",emoji:"🍱"},
+ {id:5,name:"Paneer Butter Masala",price:290,cat:"Main Course",time:"lunch",emoji:"🍛"},
+ {id:6,name:"Dal Tadka",price:180,cat:"Main Course",time:"lunch",emoji:"🥘"},
+ {id:7,name:"Chicken Biryani",price:320,cat:"Main Course",time:"evening",emoji:"🍗"},
+ {id:8,name:"Paneer Tikka",price:260,cat:"Starters",time:"evening",emoji:"🧀"},
+ {id:9,name:"Butter Naan",price:55,cat:"Breads",time:"dinner",emoji:"🫓"},
+ {id:10,name:"Veg Biryani",price:260,cat:"Main Course",time:"dinner",emoji:"🍚"},
+ {id:11,name:"Gulab Jamun",price:100,cat:"Desserts",time:"all",emoji:"🍮"},
+ {id:12,name:"Fresh Lime Soda",price:80,cat:"Beverages",time:"all",emoji:"🍋"}
+];
+let products=JSON.parse(localStorage.getItem("tf_products")||"null")||seedProducts;
+let orders=JSON.parse(localStorage.getItem("tf_orders")||"null")||[
+ {id:"ORD-1001",type:"table",table:"Table 03",items:[{name:"Paneer Butter Masala",qty:1},{name:"Butter Naan",qty:2}],status:"new",total:400},
+ {id:"ORD-1002",type:"online",table:"Pickup",items:[{name:"Chicken Biryani",qty:1}],status:"preparing",total:320},
+ {id:"ORD-1003",type:"table",table:"Table 06",items:[{name:"Veg Thali",qty:2}],status:"ready",total:480}
+];
+let cart=[]; let activeCat="All";
+
+function currentMenu(){
+ const h=new Date().getHours();
+ if(h>=5&&h<11) return "morning";
+ if(h>=11&&h<16) return "lunch";
+ if(h>=16&&h<19) return "evening";
+ return "dinner";
+}
+const menuNames={morning:"Morning Menu",lunch:"Lunch Menu",evening:"Evening Menu",dinner:"Dinner Menu"};
+function updateClock(){
+ const d=new Date();
+ document.getElementById("clock").textContent=d.toLocaleDateString("en-IN",{weekday:"short",day:"2-digit",month:"short"})+" · "+d.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
+ const m=currentMenu();
+ document.getElementById("welcomeTitle").textContent=(m==="morning"?"Good morning":m==="lunch"?"Good afternoon":"Good evening")+" 👋";
+ document.getElementById("activeMenuTag").textContent=menuNames[m];
+ document.getElementById("menuTitle").textContent=menuNames[m];
+}
+function renderFilters(){
+ const cats=["All",...new Set(products.map(p=>p.cat))];
+ document.getElementById("categoryFilter").innerHTML=cats.map(c=>`<button class="${activeCat===c?"active":""}" onclick="activeCat='${c}';renderMenu()">${c}</button>`).join("");
+}
+function renderMenu(){
+ updateClock(); renderFilters();
+ const m=currentMenu();
+ const list=products.filter(p=>(p.time===m||p.time==="all")&&(activeCat==="All"||p.cat===activeCat));
+ document.getElementById("menuGrid").innerHTML=list.map(p=>`
+ <div class="card menu-card">
+   <div class="food">${p.emoji||"🍽️"}</div>
+   <div class="row"><div><strong>${p.name}</strong><div class="muted">${p.cat} · ${menuNames[p.time]||"All Day"}</div></div><span class="price">₹${p.price}</span></div>
+   <button class="primary" onclick="addToCart(${p.id})">Add to order</button>
+ </div>`).join("") || `<div class="card"><strong>No items available.</strong><p class="muted">Admin can add items for this menu time.</p></div>`;
+}
+function addToCart(id){const p=products.find(x=>x.id===id);const item=cart.find(x=>x.id===id);if(item)item.qty++;else cart.push({id,qty:1});renderCart();document.getElementById("cart").classList.add("show")}
+function renderCart(){
+ const rows=cart.map(x=>{const p=products.find(y=>y.id===x.id);return `<div class="cart-line"><div class="row"><strong>${p.name}</strong><strong>₹${p.price*x.qty}</strong></div><div class="row"><span class="muted">₹${p.price} each</span><div class="qty"><button onclick="changeQty(${x.id},-1)">−</button><span>${x.qty}</span><button onclick="changeQty(${x.id},1)">+</button></div></div></div>`}).join("");
+ document.getElementById("cartItems").innerHTML=rows||'<p class="muted">Your cart is empty.</p>';
+ document.getElementById("cartTotal").textContent="₹"+cart.reduce((s,x)=>s+products.find(p=>p.id===x.id).price*x.qty,0);
+}
+function changeQty(id,n){const x=cart.find(i=>i.id===id);x.qty+=n;if(x.qty<=0)cart=cart.filter(i=>i.id!==id);renderCart()}
+function toggleCart(){document.getElementById("cart").classList.toggle("show")}
+function placeOrder(){
+ if(!cart.length)return alert("Please add at least one item.");
+ const type=document.getElementById("orderType").value, table=type==="table"?document.getElementById("tableNo").value:"Pickup";
+ const items=cart.map(x=>({name:products.find(p=>p.id===x.id).name,qty:x.qty}));
+ const total=cart.reduce((s,x)=>s+products.find(p=>p.id===x.id).price*x.qty,0);
+ const order={id:"ORD-"+(1000+orders.length+1),type,table,items,status:"new",total};
+ orders.unshift(order);saveOrders();cart=[];renderCart();document.getElementById("cart").classList.remove("show");
+ alert(`Order ${order.id} placed successfully.\\n${type==="table"?table:"Pickup"}\\nKitchen will start once the order is accepted.`);
+ renderKitchen();renderAdmin();
+}
+function addProduct(){
+ const name=document.getElementById("pName").value.trim(),price=Number(document.getElementById("pPrice").value),cat=document.getElementById("pCat").value,time=document.getElementById("pTime").value;
+ if(!name||!price)return alert("Enter product name and price.");
+ products.push({id:Date.now(),name,price,cat,time,emoji:"🍽️"});localStorage.setItem("tf_products",JSON.stringify(products));
+ document.getElementById("pName").value="";document.getElementById("pPrice").value="";renderAdmin();renderMenu();alert("Product added.");
+}
+function deleteProduct(id){products=products.filter(p=>p.id!==id);localStorage.setItem("tf_products",JSON.stringify(products));renderAdmin();renderMenu()}
+function renderAdmin(){
+ document.getElementById("productTable").innerHTML=products.map(p=>`<tr><td><strong>${p.name}</strong></td><td>${p.cat}</td><td>₹${p.price}</td><td><span class="tag">${menuNames[p.time]||"All Day"}</span></td><td><button class="secondary small" onclick="deleteProduct(${p.id})">Delete</button></td></tr>`).join("");
+ document.getElementById("statOrders").textContent=orders.length+9;
+ document.getElementById("statKitchen").textContent=orders.filter(o=>["new","preparing"].includes(o.status)).length;
+}
+function saveOrders(){localStorage.setItem("tf_orders",JSON.stringify(orders))}
+function moveOrder(id,status){const o=orders.find(x=>x.id===id);if(o)o.status=status;saveOrders();renderKitchen();renderAdmin()}
+function orderCard(o){
+ const next={new:["preparing","Start preparing"],preparing:["ready","Mark ready"],ready:["completed","Complete"]}[o.status];
+ return `<div class="order"><div class="row"><strong>${o.id}</strong><span class="tag ${o.status==="new"?"blue":o.status==="preparing"?"yellow":o.status==="ready"?"green":""}">${o.status}</span></div><div class="muted">${o.table} · ${o.type}</div><ul>${o.items.map(i=>`<li>${i.qty} × ${i.name}</li>`).join("")}</ul><div class="row"><strong>₹${o.total}</strong>${next?`<button class="primary small" onclick="moveOrder('${o.id}','${next[0]}')">${next[1]}</button>`:"<span class='tag green'>Done</span>"}</div></div>`;
+}
+function renderKitchen(){
+ const cols={new:"colNew",preparing:"colPrep",ready:"colReady",completed:"colDone"};
+ Object.entries(cols).forEach(([s,id])=>document.getElementById(id).innerHTML=orders.filter(o=>o.status===s).map(orderCard).join("")||'<p class="muted">No orders</p>');
+ document.getElementById("countNew").textContent=orders.filter(o=>o.status==="new").length;
+ document.getElementById("countPrep").textContent=orders.filter(o=>o.status==="preparing").length;
+ document.getElementById("countReady").textContent=orders.filter(o=>o.status==="ready").length;
+}
+document.querySelectorAll(".nav-btn").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));document.getElementById(btn.dataset.page).classList.add("active");if(btn.dataset.page==="kitchen")renderKitchen();if(btn.dataset.page==="admin")renderAdmin()}));
+document.getElementById("orderType").addEventListener("change",e=>document.getElementById("tableField").style.display=e.target.value==="table"?"block":"none");
+setInterval(updateClock,1000);updateClock();renderMenu();renderCart();renderAdmin();renderKitchen();
+</script>
+</body>
+</html>
